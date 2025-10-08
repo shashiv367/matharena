@@ -1,0 +1,136 @@
+.challenges-page {
+  padding: 40px 0;
+  min-height: calc(100vh - 80px);
+}
+
+.page-header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.page-header h1 {
+  font-size: 40px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  font-size: 18px;
+}
+
+.challenges-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.challenge-item {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 32px;
+  border: 2px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.challenge-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: var(--accent-color);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.challenge-item:hover::before {
+  transform: scaleY(1);
+}
+
+.challenge-item:hover {
+  border-color: var(--accent-color);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.challenge-main {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+
+.challenge-icon-large {
+  font-size: 64px;
+  flex-shrink: 0;
+}
+
+.challenge-details {
+  flex: 1;
+}
+
+.challenge-meta {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.challenge-details h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.challenge-details p {
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.challenge-stats {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.stat-item svg {
+  color: var(--accent-color);
+}
+
+@media (max-width: 768px) {
+  .challenge-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .challenge-main {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .challenge-stats {
+    justify-content: center;
+  }
+}
+
