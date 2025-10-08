@@ -131,10 +131,12 @@
 }
 
 .graph-canvas {
-  width: 100%;
+  display: block;
   border-radius: 8px;
   cursor: pointer;
   background: var(--background);
+  max-width: 100%;
+  height: auto;
 }
 
 .canvas-controls {

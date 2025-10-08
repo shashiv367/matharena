@@ -1,0 +1,83 @@
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  text-decoration: none;
+  transition: transform var(--transition-base);
+}
+
+.logo-container:hover {
+  transform: scale(1.05);
+}
+
+.logo-mark {
+  position: relative;
+}
+
+.logo-svg {
+  width: 40px;
+  height: 40px;
+  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+
+.logo-text {
+  display: flex;
+  align-items: baseline;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+}
+
+.logo-brand {
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #6366f1, #14b8a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+}
+
+.logo-arena {
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #14b8a6, #fb923c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+}
+
+.logo-small .logo-svg {
+  width: 28px;
+  height: 28px;
+}
+
+.logo-small .logo-brand,
+.logo-small .logo-arena {
+  font-size: 1.125rem;
+}
+
+.logo-large .logo-svg {
+  width: 56px;
+  height: 56px;
+}
+
+.logo-large .logo-brand,
+.logo-large .logo-arena {
+  font-size: 2rem;
+}
+
+@media (max-width: 768px) {
+  .logo-text {
+    display: none;
+  }
+}
+

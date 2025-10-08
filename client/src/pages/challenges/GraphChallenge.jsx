@@ -1,21 +1,35 @@
 import { useState, useEffect, useRef } from 'react'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Play, RotateCcw, Lightbulb, Trophy, ArrowLeft } from 'lucide-react'
+import ProblemSelector from '../../components/ProblemSelector'
+import Confetti from '../../components/Confetti'
+import PointsPopup from '../../components/PointsPopup'
+import AchievementToast from '../../components/AchievementToast'
+import { dijkstra, calculatePathDistance, scoreGraphSolution } from '../../utils/algorithms'
+import { saveChallengeSubmission, updateUserStats, checkAndAwardBadges } from '../../services/supabaseService'
+import { graphTheoryProblems } from '../../data/problems'
+import '../../styles/gamification.css'
 import './Challenge.css'
 
 function GraphChallenge({ user }) {
   const canvasRef = useRef(null)
   const navigate = useNavigate()
+  const { problemId } = useParams()
+  const [currentProblem, setCurrentProblem] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [gameState, setGameState] = useState('playing') // playing, completed
   const [selectedPath, setSelectedPath] = useState([])
   const [optimalPath, setOptimalPath] = useState(null)
   const [score, setScore] = useState(0)
   const [showHint, setShowHint] = useState(false)
   const [feedback, setFeedback] = useState(null)
+  const [hoveredNode, setHoveredNode] = useState(null)
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [pointsPopup, setPointsPopup] = useState(null)
+  const [achievement, setAchievement] = useState(null)
 
-  // City map graph structure
-  const [graph] = useState({
+  // City map graph structure - will be loaded from problem
+  const [graph, setGraph] = useState({
     nodes: [
       { id: 0, label: 'Hospital', x: 100, y: 300, type: 'start' },
       { id: 1, label: 'Junction A', x: 250, y: 150 },
@@ -41,8 +55,43 @@ function GraphChallenge({ user }) {
   })
 
   useEffect(() => {
-    drawGraph()
-  }, [selectedPath, optimalPath, gameState])
+    if (problemId) {
+      loadProblem(parseInt(problemId))
+    }
+  }, [problemId])
+
+  useEffect(() => {
+    if (graph && graph.nodes) {
+      drawGraph()
+    }
+  }, [selectedPath, optimalPath, gameState, hoveredNode, graph])
+
+  const loadProblem = async (id) => {
+    try {
+      setLoading(true)
+      // Load from local data instead of API
+      const problem = graphTheoryProblems.find(p => p.id === id)
+      if (problem) {
+        setCurrentProblem(problem)
+        setGraph(problem.graph)
+        // Reset state
+        setSelectedPath([])
+        setOptimalPath(null)
+        setScore(0)
+        setFeedback(null)
+        setGameState('playing')
+        setShowHint(false)
+      }
+      setLoading(false)
+    } catch (error) {
+      console.error('Error loading problem:', error)
+      setLoading(false)
+    }
+  }
+
+  const handleProblemChange = (newProblem) => {
+    navigate(`/challenge/graph-theory/${newProblem.id}`)
+  }
 
   const drawGraph = () => {
     const canvas = canvasRef.current
@@ -96,31 +145,60 @@ function GraphChallenge({ user }) {
     // Draw nodes
     graph.nodes.forEach(node => {
       const isSelected = selectedPath.includes(node.id)
+      const isHovered = hoveredNode === node.id
       
       ctx.beginPath()
-      ctx.arc(node.x, node.y, 25, 0, 2 * Math.PI)
+      ctx.arc(node.x, node.y, isHovered ? 28 : 25, 0, 2 * Math.PI)
       
       if (node.type === 'start') {
-        ctx.fillStyle = '#10b981'
+        ctx.fillStyle = isHovered ? '#14b8a6' : '#10b981'
       } else if (node.type === 'end') {
-        ctx.fillStyle = '#ef4444'
+        ctx.fillStyle = isHovered ? '#f87171' : '#ef4444'
       } else if (isSelected) {
-        ctx.fillStyle = '#3b82f6'
+        ctx.fillStyle = isHovered ? '#60a5fa' : '#3b82f6'
       } else {
-        ctx.fillStyle = '#334155'
+        ctx.fillStyle = isHovered ? '#475569' : '#334155'
       }
       
       ctx.fill()
-      ctx.strokeStyle = '#f8fafc'
-      ctx.lineWidth = 2
+      ctx.strokeStyle = isHovered ? '#fbbf24' : '#f8fafc'
+      ctx.lineWidth = isHovered ? 3 : 2
       ctx.stroke()
 
       // Draw label
       ctx.fillStyle = '#f8fafc'
-      ctx.font = 'bold 12px sans-serif'
+      ctx.font = isHovered ? 'bold 14px sans-serif' : 'bold 12px sans-serif'
       ctx.textAlign = 'center'
       ctx.fillText(node.id.toString(), node.x, node.y + 5)
+      
+      // Draw node label on hover
+      if (isHovered) {
+        ctx.font = '10px sans-serif'
+        ctx.fillText(node.label, node.x, node.y + 45)
+      }
     })
+  }
+
+  const handleMouseMove = (e) => {
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+    
+    // Account for canvas scaling
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    
+    const x = (e.clientX - rect.left) * scaleX
+    const y = (e.clientY - rect.top) * scaleY
+
+    let foundNode = null
+    graph.nodes.forEach(node => {
+      const distance = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2)
+      if (distance <= 25) {
+        foundNode = node.id
+      }
+    })
+    
+    setHoveredNode(foundNode)
   }
 
   const handleNodeClick = (e) => {
@@ -128,8 +206,13 @@ function GraphChallenge({ user }) {
 
     const canvas = canvasRef.current
     const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    
+    // Account for canvas scaling
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    
+    const x = (e.clientX - rect.left) * scaleX
+    const y = (e.clientY - rect.top) * scaleY
 
     graph.nodes.forEach(node => {
       const distance = Math.sqrt((x - node.x) ** 2 + (y - node.y) ** 2)
@@ -170,15 +253,55 @@ function GraphChallenge({ user }) {
 
   const checkSolution = async (path) => {
     try {
-      const response = await axios.post('/api/challenges/graph-theory/solve', {
-        userId: user.id,
-        path: path
+      // Calculate solution using frontend algorithms
+      const nodes = graph.nodes.map(n => n.id)
+      const startNode = nodes[0]
+      const endNode = nodes[nodes.length - 1]
+      
+      const optimalPath = dijkstra({ nodes, edges: graph.edges }, startNode, endNode)
+      const optimalDistance = calculatePathDistance(graph.edges, optimalPath)
+      const userDistance = calculatePathDistance(graph.edges, path)
+      
+      const result = scoreGraphSolution(path, optimalPath, userDistance, optimalDistance)
+
+      setOptimalPath(result.optimalPath)
+      setScore(result.score)
+      setFeedback(result.feedback)
+      setGameState('completed')
+
+      // Save to Supabase
+      await saveChallengeSubmission(user.id, 'graph_theory', result.score, {
+        problemId: currentProblem?.id,
+        path,
+        userDistance,
+        optimalDistance
       })
 
-      setOptimalPath(response.data.optimalPath)
-      setScore(response.data.score)
-      setFeedback(response.data.feedback)
-      setGameState('completed')
+      // Update user stats
+      const badges = checkAndAwardBadges(result.score, 'graph_theory', { challenges_completed: 0 })
+      await updateUserStats(user.id, result.score, true, badges[0])
+
+      // Celebrate!
+      setShowConfetti(true)
+      
+      // Show points popup
+      setPointsPopup({
+        points: result.score,
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2
+      })
+
+      // Show achievement if perfect score
+      if (result.score === 100) {
+        setTimeout(() => {
+          setAchievement({
+            icon: '🏆',
+            title: 'Perfect Solution!',
+            description: 'You found the optimal path!',
+            points: result.score
+          })
+        }, 1000)
+      }
     } catch (error) {
       console.error('Error checking solution:', error)
     }
@@ -205,22 +328,68 @@ function GraphChallenge({ user }) {
     return distance
   }
 
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner"></div>
+        <p>Loading problem...</p>
+      </div>
+    )
+  }
+
+  if (!currentProblem) {
+    return (
+      <div className="loading-screen">
+        <p>Problem not found</p>
+        <button onClick={() => navigate('/challenges/graph-theory')} className="btn btn-primary">
+          Back to Problems
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="challenge-page">
       <div className="container">
-        <button onClick={() => navigate('/challenges')} className="back-button">
+        <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
+        {pointsPopup && (
+          <PointsPopup
+            points={pointsPopup.points}
+            x={pointsPopup.x}
+            y={pointsPopup.y}
+            onComplete={() => setPointsPopup(null)}
+          />
+        )}
+        {achievement && (
+          <AchievementToast
+            achievement={achievement}
+            onClose={() => setAchievement(null)}
+          />
+        )}
+        
+        <button onClick={() => navigate('/challenges/graph-theory')} className="back-button">
           <ArrowLeft size={20} />
-          Back to Challenges
+          Back to Problem List
         </button>
+
+        {currentProblem && (
+          <ProblemSelector
+            category="graph-theory"
+            currentProblemId={currentProblem.id}
+            onProblemChange={handleProblemChange}
+          />
+        )}
 
         <div className="challenge-header fade-in">
           <div className="challenge-title">
-            <h1>🚑 Graph Theory: Ambulance Routing</h1>
-            <p>Find the shortest path from Hospital to Accident Site using Graph Theory</p>
+            <h1>🚑 {currentProblem?.title || 'Graph Theory Challenge'}</h1>
+            <p>{currentProblem?.description || 'Find the shortest path using Graph Theory'}</p>
           </div>
           <div className="challenge-badges">
-            <span className="badge badge-warning">Medium</span>
-            <span className="badge badge-primary">100 Points</span>
+            <span className={`badge badge-${currentProblem?.difficulty === 'easy' ? 'success' : currentProblem?.difficulty === 'hard' ? 'warning' : 'warning'}`}>
+              {currentProblem?.difficulty}
+            </span>
+            <span className="badge badge-primary">{currentProblem?.points} Points</span>
           </div>
         </div>
 
@@ -263,6 +432,8 @@ function GraphChallenge({ user }) {
                 width={800}
                 height={600}
                 onClick={handleNodeClick}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={() => setHoveredNode(null)}
                 className="graph-canvas"
               />
               
@@ -285,10 +456,10 @@ function GraphChallenge({ user }) {
           </div>
 
           {gameState === 'completed' && feedback && (
-            <div className="results-panel card fade-in">
+            <div className="results-panel card glow-card fade-in powerup">
               <div className="results-header">
                 <Trophy size={32} color="#f59e0b" />
-                <h2>Challenge Complete!</h2>
+                <h2>🎉 Challenge Complete!</h2>
               </div>
 
               <div className="results-grid">
@@ -317,9 +488,14 @@ function GraphChallenge({ user }) {
                 )}
               </div>
 
-              <button onClick={reset} className="btn btn-primary">
-                Try Again
-              </button>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button onClick={reset} className="btn-game">
+                  🔄 Try Again
+                </button>
+                <button onClick={() => navigate('/challenges/graph-theory')} className="btn-game">
+                  📋 More Problems
+                </button>
+              </div>
             </div>
           )}
         </div>

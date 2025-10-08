@@ -33,9 +33,22 @@ function Login() {
     <div className="auth-container">
       <div className="auth-card fade-in">
         <div className="auth-header">
-          <div className="auth-logo">📐</div>
-          <h1>Welcome to MathArena</h1>
-          <p>Mathematics in Motion - Learn through Real-World Challenges</p>
+          <div className="auth-logo">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="authGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#6366f1" />
+                  <stop offset="50%" stopColor="#14b8a6" />
+                  <stop offset="100%" stopColor="#fb923c" />
+                </linearGradient>
+              </defs>
+              <path d="M12 32 L24 16 L36 32 L24 48 Z" stroke="url(#authGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <circle cx="44" cy="24" r="10" stroke="url(#authGradient)" strokeWidth="3" fill="none" />
+              <path d="M40 40 Q44 44 52 40" stroke="url(#authGradient)" strokeWidth="3" strokeLinecap="round" fill="none" />
+            </svg>
+          </div>
+          <h1>Welcome Back</h1>
+          <p>Continue your mathematical journey with real-world challenges</p>
         </div>
 
         <form onSubmit={handleLogin} className="auth-form">

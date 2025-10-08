@@ -5,13 +5,16 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import Challenges from './pages/Challenges'
+import ProblemList from './pages/ProblemList'
 import GraphChallenge from './pages/challenges/GraphChallenge'
 import TrigonometryChallenge from './pages/challenges/TrigonometryChallenge'
 import IntegrationChallenge from './pages/challenges/IntegrationChallenge'
 import Leaderboard from './pages/Leaderboard'
 import Profile from './pages/Profile'
 import Navbar from './components/Navbar'
+import FloatingParticles from './components/FloatingParticles'
 import './App.css'
+import './styles/gamification.css'
 
 function App() {
   const [user, setUser] = useState(null)
@@ -46,6 +49,8 @@ function App() {
   return (
     <Router>
       <div className="app">
+        <div className="animated-bg"></div>
+        {user && <FloatingParticles count={30} />}
         {user && <Navbar user={user} />}
         <Routes>
           <Route
@@ -65,15 +70,19 @@ function App() {
             element={user ? <Challenges /> : <Navigate to="/login" />}
           />
           <Route
-            path="/challenge/graph-theory"
+            path="/challenges/:category"
+            element={user ? <ProblemList /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/challenge/graph-theory/:problemId"
             element={user ? <GraphChallenge user={user} /> : <Navigate to="/login" />}
           />
           <Route
-            path="/challenge/trigonometry"
+            path="/challenge/trigonometry/:problemId"
             element={user ? <TrigonometryChallenge user={user} /> : <Navigate to="/login" />}
           />
           <Route
-            path="/challenge/integration"
+            path="/challenge/integration/:problemId"
             element={user ? <IntegrationChallenge user={user} /> : <Navigate to="/login" />}
           />
           <Route

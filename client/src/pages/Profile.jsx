@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import { User, Award, Target, Zap, Trophy, Calendar } from 'lucide-react'
+import { getUserProfile } from '../services/supabaseService'
 import './Profile.css'
 
 function Profile({ user }) {
@@ -13,7 +13,7 @@ function Profile({ user }) {
 
   const fetchProfile = async () => {
     try {
-      const { data } = await axios.get(`/api/users/${user.id}`)
+      const { data } = await getUserProfile(user.id)
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)

@@ -88,10 +88,10 @@ function Challenges() {
                 </div>
               </div>
               <Link
-                to={`/challenge/${challenge.id}`}
+                to={`/challenges/${challenge.id}`}
                 className="btn btn-primary"
               >
-                Start Challenge
+                View Problems
               </Link>
             </div>
           ))}

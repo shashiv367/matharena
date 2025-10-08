@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
-import { Trophy, Medal, Award, TrendingUp } from 'lucide-react'
+import { Trophy, Medal, Award } from 'lucide-react'
+import { getLeaderboard } from '../services/supabaseService'
 import './Leaderboard.css'
 
 function Leaderboard() {
@@ -14,8 +14,8 @@ function Leaderboard() {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data } = await axios.get(`/api/leaderboard?filter=${filter}`)
-      setLeaderboard(data)
+      const { data } = await getLeaderboard(filter)
+      setLeaderboard(data || [])
     } catch (error) {
       console.error('Error fetching leaderboard:', error)
     } finally {

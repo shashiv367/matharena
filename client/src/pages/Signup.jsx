@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../config/supabase'
-import axios from 'axios'
+import { createUserProfile } from '../services/supabaseService'
 import { Mail, Lock, User, GraduationCap, UserPlus } from 'lucide-react'
 import './Auth.css'
 
@@ -43,13 +43,13 @@ function Signup() {
 
       if (authError) throw authError
 
-      // Create user profile via backend
-      await axios.post('/api/users/create', {
-        userId: authData.user.id,
-        name: formData.name,
-        email: formData.email,
-        skillLevel: formData.skillLevel
-      })
+      // Create user profile in Supabase
+      await createUserProfile(
+        authData.user.id,
+        formData.name,
+        formData.email,
+        formData.skillLevel
+      )
 
       navigate('/dashboard')
     } catch (err) {
@@ -62,9 +62,22 @@ function Signup() {
     <div className="auth-container">
       <div className="auth-card fade-in">
         <div className="auth-header">
-          <div className="auth-logo">📐</div>
-          <h1>Join MathArena</h1>
-          <p>Start your journey in mathematical problem-solving</p>
+          <div className="auth-logo">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="signupGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#6366f1" />
+                  <stop offset="50%" stopColor="#14b8a6" />
+                  <stop offset="100%" stopColor="#fb923c" />
+                </linearGradient>
+              </defs>
+              <path d="M12 32 L24 16 L36 32 L24 48 Z" stroke="url(#signupGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <circle cx="44" cy="24" r="10" stroke="url(#signupGradient)" strokeWidth="3" fill="none" />
+              <path d="M40 40 Q44 44 52 40" stroke="url(#signupGradient)" strokeWidth="3" strokeLinecap="round" fill="none" />
+            </svg>
+          </div>
+          <h1>Begin Your Journey</h1>
+          <p>Transform how you learn and apply mathematics</p>
         </div>
 
         <form onSubmit={handleSignup} className="auth-form">
