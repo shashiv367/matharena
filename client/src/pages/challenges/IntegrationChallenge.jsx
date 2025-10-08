@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { Calculator, RotateCcw, Trophy, ArrowLeft, Lightbulb } from 'lucide-react'
+import { scoreIntegrationSolution } from '../../utils/algorithms'
+import { saveChallengeSubmission, updateUserStats } from '../../services/supabaseService'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -100,14 +101,18 @@ function IntegrationChallenge({ user }) {
     e.preventDefault()
 
     try {
-      const response = await axios.post('/api/challenges/integration/solve', {
-        userId: user.id,
+      const result = scoreIntegrationSolution(userAnswer)
+
+      setScore(result.score)
+      setFeedback(result.feedback)
+      setGameState('completed')
+
+      // Save to Supabase
+      await saveChallengeSubmission(user.id, 'integration', result.score, {
         answer: parseFloat(userAnswer)
       })
 
-      setScore(response.data.score)
-      setFeedback(response.data.feedback)
-      setGameState('completed')
+      await updateUserStats(user.id, result.score, true)
     } catch (error) {
       console.error('Error submitting solution:', error)
     }
