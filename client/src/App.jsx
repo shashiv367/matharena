@@ -50,8 +50,12 @@ function App() {
     <Router>
       <div className="app">
         <div className="animated-bg"></div>
-        {user && <FloatingParticles count={30} />}
-        {user && <Navbar user={user} />}
+        {user && (
+          <>
+            <FloatingParticles count={20} />
+            <Navbar user={user} />
+          </>
+        )}
         <Routes>
           <Route
             path="/login"

@@ -31,6 +31,10 @@ function ProblemSelector({ category, currentProblemId, onProblemChange }) {
   const currentIndex = problems.findIndex(p => p.id === currentProblemId)
   const currentProblem = problems[currentIndex]
 
+  if (!currentProblem || problems.length === 0) {
+    return null
+  }
+
   const goToPrevious = () => {
     if (currentIndex > 0) {
       onProblemChange(problems[currentIndex - 1])

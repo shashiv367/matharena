@@ -5,13 +5,17 @@ function FloatingParticles({ count = 20 }) {
   const [particles, setParticles] = useState([])
 
   useEffect(() => {
-    const newParticles = Array.from({ length: count }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 15,
-      duration: 10 + Math.random() * 10
-    }))
-    setParticles(newParticles)
+    try {
+      const newParticles = Array.from({ length: count }, (_, i) => ({
+        id: i,
+        left: Math.random() * 100,
+        delay: Math.random() * 15,
+        duration: 10 + Math.random() * 10
+      }))
+      setParticles(newParticles)
+    } catch (error) {
+      console.error('Error creating particles:', error)
+    }
   }, [count])
 
   return (
