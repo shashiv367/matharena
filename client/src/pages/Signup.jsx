@@ -43,13 +43,22 @@ function Signup() {
 
       if (authError) throw authError
 
+      // Check if email confirmation is required
+      if (authData.user && !authData.session) {
+        setError('Please check your email to verify your account before logging in.')
+        setLoading(false)
+        return
+      }
+
       // Create user profile in Supabase
-      await createUserProfile(
-        authData.user.id,
-        formData.name,
-        formData.email,
-        formData.skillLevel
-      )
+      if (authData.user) {
+        await createUserProfile(
+          authData.user.id,
+          formData.name,
+          formData.email,
+          formData.skillLevel
+        )
+      }
 
       navigate('/dashboard')
     } catch (err) {
