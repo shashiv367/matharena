@@ -36,18 +36,24 @@ CREATE INDEX IF NOT EXISTS idx_submissions_challenge_type ON challenge_submissio
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE challenge_submissions ENABLE ROW LEVEL SECURITY;
 
--- Users policies
-CREATE POLICY "Users can view their own profile"
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Users can view their own profile" ON users;
+DROP POLICY IF EXISTS "Users can view leaderboard" ON users;
+DROP POLICY IF EXISTS "Users can insert their own profile" ON users;
+DROP POLICY IF EXISTS "Users can update their own profile" ON users;
+
+-- Users policies - FIXED FOR SIGNUP
+CREATE POLICY "Users can view all profiles"
   ON users FOR SELECT
-  USING (auth.uid() = id);
+  USING (true);
+
+CREATE POLICY "Users can insert their own profile"
+  ON users FOR INSERT
+  WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile"
   ON users FOR UPDATE
   USING (auth.uid() = id);
-
-CREATE POLICY "Users can view leaderboard"
-  ON users FOR SELECT
-  USING (true);
 
 -- Challenge submissions policies
 CREATE POLICY "Users can view their own submissions"
